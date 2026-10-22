@@ -1,0 +1,22 @@
+# Standalone Compose file: runs only the API against the remote Supabase database.
+services:
+  api:
+    build: .
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL in .env or environment}
+      DB_URL: ${DB_URL:?Set the Supabase JDBC URL in .env or environment}
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env or environment}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env or environment}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

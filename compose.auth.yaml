@@ -1,0 +1,13 @@
+# Merge with compose.yaml after scripts/start-local-auth.py starts the Supabase stack.
+services:
+  api:
+    environment:
+      SUPABASE_URL: http://127.0.0.1:54321
+      SUPABASE_JWKS_URL: http://supabase_auth_glicnote-local:9999/.well-known/jwks.json
+    networks:
+      - default
+      - supabase-auth
+networks:
+  supabase-auth:
+    external: true
+    name: supabase_network_glicnote-local
