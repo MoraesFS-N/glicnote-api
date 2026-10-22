@@ -6,7 +6,7 @@ Configuração usada: Docker, plano Free, health check `/health` e banco Supabas
 1. Crie a conta em https://render.com/ com Continue with GitHub e permita acesso
    ao repositório `MoraesFS-N/glicnote-api`.
 2. No painel Render, escolha **New → Web Service**, conecte esse repositório e
-   selecione a branch **feat/supabase-backend**. A branch main ainda contém a API antiga.
+   selecione a branch **master**. Essa é a branch de produção; `dev` integra desenvolvimento.
 3. Nome: `glicnote-api` (o Render pode exigir outro nome disponível). Runtime:
    **Docker**. Root Directory: vazio. Dockerfile: `./Dockerfile`. Plano: **Free**.
 4. Em Environment, configure:
@@ -21,8 +21,7 @@ Configuração usada: Docker, plano Free, health check `/health` e banco Supabas
 
    A API não precisa de chave secret/service_role nem do segredo OAuth Google.
    A porta interna segue a variável PORT do Render. CORS pode ficar vazio para o app nativo.
-5. Em Advanced, defina **Health Check Path: `/health`** e desative deploy automático
-   nesta primeira configuração. Clique em **Create Web Service / Deploy**.
+5. Em Advanced, defina **Health Check Path: `/health`** e configure **Auto-Deploy: After CI Checks Pass**. Clique em **Create Web Service / Deploy**.
 6. Aguarde o status **Live**. Abra `https://SEU-SERVICO.onrender.com/health`;
    a resposta esperada é HTTP 200. Migrações já aplicadas não são repetidas.
 7. Envie a URL pública da API para configurar `API_BASE_URL` no Flutter, recompilar
@@ -41,3 +40,15 @@ continua sendo `https://wwgdipdpiumvuibqlejr.supabase.co/auth/v1/callback`; não
 
 Referências: [Web Services](https://render.com/docs/web-services),
 [Docker](https://render.com/docs/docker), [Plano gratuito](https://render.com/docs/free).
+
+## Migrar o serviço existente
+
+No serviço `glicnote-api`, Settings → Build & Deploy: selecione Branch `master`
+e Auto-Deploy `After CI Checks Pass`. Se gerenciado por Blueprint, sincronize o
+Blueprint a partir de master para aplicar `branch: master` e
+`autoDeployTrigger: checksPass`. Apenas versionar render.yaml não altera um
+serviço criado manualmente. Preserve todas as variáveis e o banco existente.
+
+A configuração no painel precisa ser confirmada; este arquivo não comprova que
+ela já foi aplicada. Após um deploy, confira no Render o SHA publicado e o status
+Live, depois GET /health. Um health check isolado não identifica a versão.

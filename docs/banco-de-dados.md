@@ -8,6 +8,29 @@ As dez tabelas de domínio ficam no schema privado `glicnote`. Não há acesso d
 
 Identidades, sessões e OAuth são gerenciados pelo Supabase Auth (`auth.users` e tabelas internas), não pelas migrações de domínio. Não há senhas Google ou tokens nas tabelas abaixo. Flyway mantém sua tabela técnica `flyway_schema_history`; consulte o final.
 
+## Relacionamentos principais
+
+```mermaid
+erDiagram
+    profiles ||--o| emergency_contacts : possui
+    profiles ||--o{ readings : registra
+    profiles ||--o{ follows : solicita_ou_recebe
+    profiles ||--o{ blocks : bloqueia_ou_recebe
+    special_dates |o--o{ badges : define_data
+    profiles ||--o{ earned_badges : conquista
+    badges ||--o{ earned_badges : concede
+    readings |o--o{ earned_badges : origina
+    profiles ||--o{ posts : publica
+    readings |o--o| posts : compartilha
+    earned_badges |o--o| posts : compartilha
+    profiles ||--o{ notifications : recebe
+    follows |o--o{ notifications : origina
+    earned_badges |o--o{ notifications : origina
+```
+
+As duas relações de conteúdo em posts são alternativas (XOR), não simultâneas.
+Follows e blocks têm dois papéis de perfil; os campos abaixo identificam cada lado.
+
 ## profiles
 
 Perfil privado do usuário, vinculado por UUID à identidade do Supabase Auth. O banco não possui FK para auth.users: a sincronização da identidade ocorre na API.

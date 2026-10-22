@@ -96,11 +96,11 @@ Esta base foi recriada, conforme o novo escopo. As migrações antigas foram sub
 
 Supabase hospeda banco e autenticação. Esta API Spring Boot é executada em um servidor/container separado; ela não roda dentro de Supabase Edge Functions ou Cloudflare Workers.
 
-`Dockerfile` e `render.yaml` preparam uma instância **Render Free** usando o PostgreSQL do Supabase. O Blueprint desabilita deploy automático e solicita as variáveis remotas. Nenhum recurso remoto é criado ao adicionar esses arquivos ao projeto. O plano gratuito do Render pode dormir por inatividade; não há banco Render no Blueprint.
+`Dockerfile` e `render.yaml` preparam uma instância **Render Free** usando o PostgreSQL do Supabase. O Blueprint seleciona `master`, publica após os checks passarem e solicita as variáveis remotas. Nenhum recurso remoto é criado ao adicionar esses arquivos ao projeto. O plano gratuito do Render pode dormir por inatividade; não há banco Render no Blueprint.
 
 Antes de iniciar um deploy, configurar `SUPABASE_URL`, `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. `CORS_ORIGINS` aceita origens web exatas separadas por vírgula; pode ficar vazio para clientes nativos. Credenciais de migração devem ter permissão de criar o schema e suas tabelas. A separação entre uma role de migração e uma role de execução pode ser configurada com as propriedades padrão do Flyway/Spring.
 
-`.github/workflows/ci.yml` executa os testes em PostgreSQL descartável e verifica a construção Docker. Nenhum deploy está configurado no CI.
+`.github/workflows/ci.yml` executa os testes em PostgreSQL descartável e verifica a construção Docker. O Render pode publicar `master` após o CI passar, quando o serviço estiver configurado conforme [o guia](docs/deploy-render.md).
 
 ## Contrato e regras
 
@@ -138,3 +138,7 @@ A migração V5 adiciona `birth_date` privado e opcional, preservando os anivers
 antigos sem inventar anos. O perfil aceita data completa válida até o dia atual,
 deriva mês/dia para medalhas e mantém nome/e-mail somente para leitura. A idade
 é calculada no cliente. Veja o contrato atualizado em `docs/api.md`.
+
+## Desenvolvimento e publicação
+
+Veja [o fluxo dev → master](docs/desenvolvimento-deploy.md).

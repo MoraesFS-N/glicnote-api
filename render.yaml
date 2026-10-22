@@ -3,7 +3,8 @@ services:
     name: glicnote-api
     runtime: docker
     plan: free
-    autoDeployTrigger: 'off'
+    branch: master
+    autoDeployTrigger: checksPass
     healthCheckPath: /health
     envVars:
       - key: SUPABASE_URL
