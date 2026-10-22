@@ -8,7 +8,7 @@ docker run --rm -d --name "$container" -p 127.0.0.1::5432 \
   -e POSTGRES_DB=glicnote -e POSTGRES_USER=glicnote -e POSTGRES_PASSWORD=test-only-password \
   postgres:17-alpine >/dev/null
 for attempt in $(seq 1 40); do
-  if docker exec "$container" pg_isready -U glicnote -d glicnote >/dev/null 2>&1; then break; fi
+  if docker exec "$container" pg_isready -h 127.0.0.1 -U glicnote -d glicnote >/dev/null 2>&1; then break; fi
   if [ "$attempt" = 40 ]; then docker logs "$container"; exit 1; fi
   sleep 1
 done
