@@ -26,7 +26,7 @@ Seu histórico e contato de emergência são privados. Nenhuma aferição é pub
 
 ## Serviços e armazenamento
 
-O Google participa da autenticação e do fornecimento da foto. O Supabase hospeda a autenticação e o banco de dados; o projeto atual usa uma região nos Estados Unidos. A API está em ambiente de desenvolvimento sob responsabilidade da Tech Mow. Outros provedores, como o Render, serão incluídos quando efetivamente usados. Esses serviços podem tratar dados em outros países, conforme suas configurações e condições.
+O Google participa da autenticação e do fornecimento da foto. O Supabase hospeda a autenticação e o banco de dados; o projeto atual usa uma região nos Estados Unidos. O Render hospeda a API do GlicNote. Esses serviços podem tratar dados em outros países, conforme suas configurações e condições.
 
 ## Retenção e segurança
 
