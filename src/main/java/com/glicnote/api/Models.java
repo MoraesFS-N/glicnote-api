@@ -9,13 +9,13 @@ public final class Models {
     private Models() {}
     public static final String MOMENTS = "fasting|after_breakfast|after_lunch|after_snack|after_dinner|other";
     public record Profile(UUID id, String name, String username, String email, String photoUrl,
-                          String timeZone, Integer birthdayMonth, Integer birthdayDay,
+                          String timeZone, Integer birthdayMonth, Integer birthdayDay, LocalDate birthDate,
                           OffsetDateTime createdAt, OffsetDateTime updatedAt) {}
     public record PublicProfile(UUID id, String name, String username, String photoUrl) {}
-    public record ProfileInput(@NotBlank @Size(max=120) String name,
+    public record ProfileInput(@Size(max=120) String name,
         @NotBlank @Pattern(regexp="[a-z0-9_]{3,30}") String username,
         @NotBlank @Size(max=80) String timeZone,
-        @Min(1) @Max(12) Integer birthdayMonth, @Min(1) @Max(31) Integer birthdayDay) {}
+        @Min(1) @Max(12) Integer birthdayMonth, @Min(1) @Max(31) Integer birthdayDay, LocalDate birthDate) {}
     public record EmergencyContact(String name, String phone, String relationship, OffsetDateTime updatedAt) {}
     public record ContactInput(@NotBlank @Size(max=120) String name,
         @NotBlank @Pattern(regexp="\\+[1-9][0-9]{6,14}") String phone, @Size(max=80) String relationship) {}

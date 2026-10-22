@@ -7,7 +7,7 @@ Todas as rotas abaixo exigem access token Supabase no cabeçalho `Authorization:
 | Método | Rota | Comportamento |
 |---|---|---|
 | GET | `/v1/me` | Perfil privado; cria perfil inicial se necessário |
-| PUT | `/v1/me` | Atualiza nome, nome de usuário, fuso e aniversário opcional |
+| PUT | `/v1/me` | Atualiza nome de usuário, fuso e data de nascimento opcional |
 | GET / PUT / DELETE | `/v1/me/emergency-contact` | Contato privado; ausência retorna 404; DELETE retorna 204 |
 | GET | `/v1/users?query=ana&limit=20` | Busca por prefixo de username ou trecho de nome; mínimo 2 caracteres |
 | GET | `/v1/users/{id}` | Apenas perfil público; bloqueados retornam 404 |
@@ -35,15 +35,30 @@ Todas as rotas abaixo exigem access token Supabase no cabeçalho `Authorization:
 
 ```json
 {
-  "name": "Ana",
   "username": "ana_silva",
   "timeZone": "America/Sao_Paulo",
-  "birthdayMonth": 10,
-  "birthdayDay": 21
+  "birthDate": "1990-10-21"
 }
 ```
 
-Nome de usuário: 3–30 caracteres, letras ASCII minúsculas, dígitos e `_`; único. Aniversário é opcional, mas mês e dia precisam ser informados juntos e formar uma data válida, considerando 29/02 válido. PUT substitui os campos editáveis; omitir aniversário remove a configuração. E-mail/foto iniciais vêm da identidade autenticada, não do corpo enviado.
+Nome de usuário: 3–30 caracteres, letras ASCII minúsculas, dígitos e `_`; único.
+`birthDate` é opcional, usa `YYYY-MM-DD`, exige uma data válida e não pode estar
+no futuro em relação ao fuso do perfil. A idade é calculada no Flutter; não é
+persistida como número. A data completa aparece somente no perfil privado.
+`birthdayMonth`/`birthdayDay` são derivados da data para preservar as medalhas anuais.
+Registros antigos que só têm mês/dia não recebem um ano inventado e não exibem idade.
+
+Nome, e-mail e foto vêm da identidade Google. O PUT não altera nome nem e-mail.
+Por compatibilidade, `name` pode ser enviado com o mesmo valor já salvo;
+uma tentativa de alteração retorna 400 `identity_read_only`. Enviar `email`
+continua sendo rejeitado como campo desconhecido.
+
+Clientes antigos podem enviar `birthdayMonth`/`birthdayDay`, sempre em conjunto;
+se coincidirem com a data completa já salva, ela é preservada. Se uma data
+completa e mês/dia forem enviados juntos, devem concordar. Para remover a data,
+envie `birthDate`, `birthdayMonth` e `birthdayDay` nulos. PUT substitui os campos
+editáveis. Data futura retorna `future_birth_date`; inconsistências de aniversário
+retornam `invalid_birthday`.
 
 Contato de emergência, em seu endpoint próprio:
 

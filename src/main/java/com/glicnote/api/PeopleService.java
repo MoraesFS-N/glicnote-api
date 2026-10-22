@@ -40,17 +40,30 @@ public class PeopleService {
     void lock(UUID id) { db.sql("SELECT id FROM profiles WHERE id=:id FOR UPDATE").param("id",id).query(UUID.class).single(); }
     @Transactional
     Profile update(UUID id,ProfileInput input) {
-        zone(input.timeZone());
-        if((input.birthdayMonth()==null)!=(input.birthdayDay()==null)) throw ApiException.invalid("invalid_birthday");
-        if(input.birthdayMonth()!=null) {
-            try { MonthDay.of(input.birthdayMonth(),input.birthdayDay()); }
+        var profileZone=zone(input.timeZone());
+        lock(id);
+        var current=me(id);
+        if(input.name()!=null && !input.name().equals(current.name())) throw ApiException.invalid("identity_read_only");
+        Integer month=input.birthdayMonth(),day=input.birthdayDay();
+        LocalDate birth=input.birthDate();
+        if(birth!=null) {
+            if(birth.isAfter(LocalDate.now(badges.clock.withZone(profileZone)))) throw ApiException.invalid("future_birth_date");
+            if((month!=null && month!=birth.getMonthValue()) || (day!=null && day!=birth.getDayOfMonth()))
+                throw ApiException.invalid("invalid_birthday");
+            month=birth.getMonthValue();day=birth.getDayOfMonth();
+        } else if(Objects.equals(month,current.birthdayMonth()) && Objects.equals(day,current.birthdayDay())) {
+            birth=current.birthDate();
+        }
+        if((month==null)!=(day==null)) throw ApiException.invalid("invalid_birthday");
+        if(month!=null) {
+            try { MonthDay.of(month,day); }
             catch(DateTimeException e) { throw ApiException.invalid("invalid_birthday"); }
         }
-        lock(id);
         db.sql("""
-            UPDATE profiles SET name=:name,username=:username,time_zone=:zone,birthday_month=:month,birthday_day=:day,updated_at=now() WHERE id=:id
-            """).param("name",input.name().trim()).param("username",input.username()).param("zone",input.timeZone())
-            .param("month",input.birthdayMonth()).param("day",input.birthdayDay()).param("id",id).update();
+            UPDATE profiles SET username=:username,time_zone=:zone,birthday_month=:month,birthday_day=:day,
+            birth_date=:birth,updated_at=now() WHERE id=:id
+            """).param("username",input.username()).param("zone",input.timeZone())
+            .param("month",month).param("day",day).param("birth",birth).param("id",id).update();
         badges.evaluate(id);
         return me(id);
     }

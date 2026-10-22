@@ -88,7 +88,7 @@ class ApiIntegrationIT {
         return response.getContentAsByteArray().length==0?json.nullNode():json.readTree(response.getContentAsByteArray());
     }
     JsonNode profile(UUID user,String username) throws Exception {
-        return result(call(HttpMethod.PUT,"/v1/me",user,Map.of("name",username,"username",username,"timeZone","America/Sao_Paulo")),200);
+        return result(call(HttpMethod.PUT,"/v1/me",user,Map.of("name","Original name","username",username,"timeZone","America/Sao_Paulo")),200);
     }
     Map<String,Object> readingBody(UUID id,int glucose,String measuredAt,String moment,String zone,BigDecimal insulin) {
         var body=new HashMap<String,Object>(); body.put("id",id);body.put("glucoseMgDl",glucose);body.put("measuredAt",measuredAt);
@@ -113,7 +113,7 @@ class ApiIntegrationIT {
         var first=result(mvc.perform(get("/v1/me").header("Authorization","Bearer "+metadataToken(ALICE,
             Map.of("full_name","Google name","avatar_url","http://invalid.example/photo","picture","https://lh3.googleusercontent.com/first")))),200);
         assertThat(first.get("photoUrl").asText()).isEqualTo("https://lh3.googleusercontent.com/first");
-        assertThat(first.get("name").asText()).isEqualTo("alice");
+        assertThat(first.get("name").asText()).isEqualTo("Original name");
         var updated=result(mvc.perform(get("/v1/me").header("Authorization","Bearer "+metadataToken(ALICE,
             Map.of("avatar_url","https://lh3.googleusercontent.com/second")))),200);
         assertThat(updated.get("photoUrl").asText()).isEqualTo("https://lh3.googleusercontent.com/second");
@@ -155,13 +155,44 @@ class ApiIntegrationIT {
     @Test void profileIsPrivateAndBootstrapDoesNotOverwriteEdits() throws Exception {
         profile(ALICE,"alice");profile(BOB,"bob");
         var me=result(call(HttpMethod.GET,"/v1/me",ALICE,null),200);
-        assertThat(me.get("name").asText()).isEqualTo("alice");
+        assertThat(me.get("name").asText()).isEqualTo("Original name");
         var publicProfile=result(call(HttpMethod.GET,"/v1/users/"+ALICE,BOB,null),200);
         assertThat(publicProfile.has("email")).isFalse();assertThat(publicProfile.has("birthdayDay")).isFalse();
         assertThat(result(call(HttpMethod.GET,"/v1/users?query=ali",BOB,null),200).size()).isEqualTo(1);
-        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Bob","username","alice","timeZone","UTC")),409);
-        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Bob","username","bob","timeZone","Not/AZone")),400);
-        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Bob","username","bob","timeZone","UTC","birthdayMonth",2,"birthdayDay",30)),400);
+        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Original name","username","alice","timeZone","UTC")),409);
+        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Original name","username","bob","timeZone","Not/AZone")),400);
+        result(call(HttpMethod.PUT,"/v1/me",BOB,Map.of("name","Original name","username","bob","timeZone","UTC","birthdayMonth",2,"birthdayDay",30)),400);
+    }
+    @Test void fullBirthDateIsPrivateAndIdentityFieldsCannotBeChanged() throws Exception {
+        var body=new HashMap<String,Object>();body.put("username","alice");body.put("timeZone","UTC");body.put("birthDate","2000-02-29");
+        var saved=result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200);
+        assertThat(saved.get("birthDate").asText()).isEqualTo("2000-02-29");
+        assertThat(saved.get("birthdayMonth").asInt()).isEqualTo(2);
+        assertThat(saved.get("birthdayDay").asInt()).isEqualTo(29);
+        assertThat(saved.get("name").asText()).isEqualTo("Original name");
+        var publicView=result(call(HttpMethod.GET,"/v1/users/"+ALICE,BOB,null),200);
+        assertThat(publicView.has("birthDate")).isFalse();assertThat(publicView.has("age")).isFalse();
+        body.put("name","Changed name");
+        assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400).get("code").asText()).isEqualTo("identity_read_only");
+        body.remove("name");body.put("email","changed@example.com");
+        result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400);body.remove("email");
+        body.put("birthDate","2026-10-22");
+        assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400).get("code").asText()).isEqualTo("future_birth_date");
+        body.put("birthDate","2001-02-29");result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400);
+        assertThat(result(call(HttpMethod.GET,"/v1/me",ALICE,null),200).get("birthDate").asText()).isEqualTo("2000-02-29");
+    }
+    @Test void legacyBirthdayUpdatesNeverInventABirthYearAndPreserveAnExistingFullDate() throws Exception {
+        var body=new HashMap<String,Object>();body.put("username","alice");body.put("timeZone","UTC");
+        body.put("birthdayMonth",10);body.put("birthdayDay",20);
+        assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200).get("birthDate").isNull()).isTrue();
+        body.put("birthDate","1990-10-20");
+        result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200);
+        body.remove("birthDate");
+        assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200).get("birthDate").asText()).isEqualTo("1990-10-20");
+        body.put("birthDate","1990-10-21");result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400);
+        body.put("birthDate",null);body.put("birthdayMonth",null);body.put("birthdayDay",null);
+        var cleared=result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200);
+        assertThat(cleared.get("birthDate").isNull()).isTrue();assertThat(cleared.get("birthdayMonth").isNull()).isTrue();
     }
     @Test void newAccountsHaveAnEmptySummaryAndZeroBadgeProgress() throws Exception {
         var summary=result(call(HttpMethod.GET,"/v1/readings/summary",ALICE,null),200);
@@ -290,7 +321,7 @@ class ApiIntegrationIT {
         reading(ALICE,"2025-01-01T10:00:00Z","fasting");reading(ALICE,"2026-01-01T10:00:00Z","fasting");
         reading(ALICE,"2026-10-20T10:00:00Z","fasting");
         assertThat(db.sql("SELECT count(*) FROM earned_badges e JOIN badges b ON b.id=e.badge_id WHERE e.user_id=:id AND b.code='birthday_reading'").param("id",ALICE).query(Long.class).single()).isZero();
-        result(call(HttpMethod.PUT,"/v1/me",ALICE,Map.of("name","Alice","username","alice","timeZone","America/Sao_Paulo","birthdayMonth",10,"birthdayDay",20)),200);
+        result(call(HttpMethod.PUT,"/v1/me",ALICE,Map.of("name","Original name","username","alice","timeZone","America/Sao_Paulo","birthdayMonth",10,"birthdayDay",20)),200);
         var editions=db.sql("SELECT e.edition FROM earned_badges e JOIN badges b ON b.id=e.badge_id WHERE e.user_id=:id AND b.code='new_year_reading' ORDER BY edition").param("id",ALICE).query(String.class).list();
         assertThat(editions).containsExactly("2025","2026");
         assertThat(db.sql("SELECT count(*) FROM earned_badges e JOIN badges b ON b.id=e.badge_id WHERE e.user_id=:id AND b.code='birthday_reading'").param("id",ALICE).query(Long.class).single()).isEqualTo(1);

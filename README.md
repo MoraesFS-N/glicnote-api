@@ -131,3 +131,10 @@ autenticação; o restante de `/v1` continua privado.
 Veja [a minuta da política](docs/politica-de-privacidade.md) e
 [o passo a passo do Render](docs/deploy-render.md). O responsável informado é Tech Mow;
 o e-mail de privacidade, retenção e bases legais ainda precisam ser definidos.
+
+## Cadastro complementar e identidade
+
+A migração V5 adiciona `birth_date` privado e opcional, preservando os aniversários
+antigos sem inventar anos. O perfil aceita data completa válida até o dia atual,
+deriva mês/dia para medalhas e mantém nome/e-mail somente para leitura. A idade
+é calculada no cliente. Veja o contrato atualizado em `docs/api.md`.
