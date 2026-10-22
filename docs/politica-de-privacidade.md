@@ -1,6 +1,6 @@
 # Política de privacidade — GlicNote
 
-Versão preliminar 0.2 • 22/10/2026
+Versão preliminar 0.3 • 22/10/2026
 
 > Esta política está em revisão. O canal de contato, os prazos de retenção e as bases legais precisam ser definidos antes da publicação definitiva.
 
@@ -10,7 +10,7 @@ A Tech Mow é responsável pelo GlicNote. O e-mail para assuntos de privacidade 
 
 ## Dados que usamos
 
-No login Google, recebemos identificador, nome, e-mail e endereço da foto de perfil. Você pode informar nome de usuário, data de nascimento completa (opcional), aferições de glicemia, insulina, momento e horário da medição e contato de emergência. O servidor registra o fuso e o dia local da aferição. Dados de saúde são dados pessoais sensíveis. Informe dados de terceiros, como o contato de emergência, com conhecimento dessa pessoa.
+No login Google, recebemos identificador, nome, e-mail e endereço da foto de perfil. Você pode informar nome de usuário, data de nascimento completa e tipo de diabetes (opcionais), aferições de glicemia, insulina, momento e horário da medição e contato de emergência. O servidor registra o fuso e o dia local da aferição. Dados de saúde são dados pessoais sensíveis. Informe dados de terceiros, como o contato de emergência, com conhecimento dessa pessoa.
 
 ## Para que usamos os dados
 

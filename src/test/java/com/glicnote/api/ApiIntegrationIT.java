@@ -194,6 +194,20 @@ class ApiIntegrationIT {
         var cleared=result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200);
         assertThat(cleared.get("birthDate").isNull()).isTrue();assertThat(cleared.get("birthdayMonth").isNull()).isTrue();
     }
+    @Test void diabetesTypeIsOptionalValidatedAndPrivate() throws Exception {
+        var body=new HashMap<String,Object>();body.put("username","alice");body.put("timeZone","UTC");
+        assertThat(result(call(HttpMethod.GET,"/v1/me",ALICE,null),200).get("diabetesType").isNull()).isTrue();
+        for (String type : new String[]{"type_1","type_2"}) {
+            body.put("diabetesType",type);
+            assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200).get("diabetesType").asText()).isEqualTo(type);
+            assertThat(result(call(HttpMethod.GET,"/v1/me",ALICE,null),200).get("diabetesType").asText()).isEqualTo(type);
+        }
+        assertThat(result(call(HttpMethod.GET,"/v1/users/"+ALICE,BOB,null),200).has("diabetesType")).isFalse();
+        body.put("diabetesType","type_3");result(call(HttpMethod.PUT,"/v1/me",ALICE,body),400);
+        assertThat(result(call(HttpMethod.GET,"/v1/me",ALICE,null),200).get("diabetesType").asText()).isEqualTo("type_2");
+        body.put("diabetesType",null);
+        assertThat(result(call(HttpMethod.PUT,"/v1/me",ALICE,body),200).get("diabetesType").isNull()).isTrue();
+    }
     @Test void newAccountsHaveAnEmptySummaryAndZeroBadgeProgress() throws Exception {
         var summary=result(call(HttpMethod.GET,"/v1/readings/summary",ALICE,null),200);
         assertThat(summary.get("count").asInt()).isZero();

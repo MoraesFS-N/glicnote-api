@@ -37,7 +37,8 @@ Todas as rotas abaixo exigem access token Supabase no cabeçalho `Authorization:
 {
   "username": "ana_silva",
   "timeZone": "America/Sao_Paulo",
-  "birthDate": "1990-10-21"
+  "birthDate": "1990-10-21",
+  "diabetesType": "type_1"
 }
 ```
 
@@ -170,3 +171,11 @@ Erros de domínio usam `application/problem+json` com `status`, `title` e `code`
 | 409 | `stale_version`, `constraint_conflict`, `already_following`, `reading_id_reused`, `duplicate_reading` |
 
 Respostas com dados privados não devem ser armazenadas em caches compartilhados. No cliente, isolar caches por usuário, remover dados sociais após bloqueio/revogação e limpar/segregar no logout. Conteúdo de notificações usa tipos/códigos, nunca frases persistidas em um idioma específico.
+
+### Tipo de diabetes
+
+`diabetesType` no perfil privado é opcional: `type_1`, `type_2` ou null.
+PUT /v1/me substitui o campo; null/ausência limpa o valor. Outros valores retornam 400.
+Não aparece no perfil público. Requer migração V6.
+
+Veja [o dicionário completo do banco](banco-de-dados.md) para campos e restrições.

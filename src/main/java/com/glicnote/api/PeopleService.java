@@ -61,9 +61,9 @@ public class PeopleService {
         }
         db.sql("""
             UPDATE profiles SET username=:username,time_zone=:zone,birthday_month=:month,birthday_day=:day,
-            birth_date=:birth,updated_at=now() WHERE id=:id
+            birth_date=:birth,diabetes_type=:type,updated_at=now() WHERE id=:id
             """).param("username",input.username()).param("zone",input.timeZone())
-            .param("month",month).param("day",day).param("birth",birth).param("id",id).update();
+            .param("month",month).param("day",day).param("birth",birth).param("type",input.diabetesType()).param("id",id).update();
         badges.evaluate(id);
         return me(id);
     }
